@@ -17,18 +17,23 @@ Key members:
 // Count how many votes each player received
 // votes shape: { uid-alice: 'uid-bob', uid-bob: 'uid-bob', uid-carol: 'uid-alice' }
 export function tallyVotes(votes, playerAId, playerBId) {
-  // TODO: loop through Object.values(votes) and count occurrences of each player ID
-  //   Hint: use .reduce() or a simple for...of loop
-  //   Return: { playerAVotes: number, playerBVotes: number }
+  const vals = Object.values(votes || {});
+  return { playerAVotes: vals.filter(v => v === playerAId).length,
+           playerBVotes: vals.filter(v => v === playerBId).length };
 }
 
 // Returns the winner ID if one player has strictly more votes, otherwise null (tie)
 export function getMatchupWinner(votes, playerAId, playerBId) {
-  // TODO: call tallyVotes, compare counts, return winning ID or null
+  const { playerAVotes, playerBVotes } = tallyVotes(votes, playerAId, playerBId);
+    if (playerAVotes > playerBVotes) return playerAId;
+    else if (playerBVotes > playerAVotes) return playerBId;
+    else {
+        // tie-breaker: player with lower ID wins (arbitrary but deterministic)
+        return playerAId < playerBId ? playerAId : playerBId;
+    }; // tie 
 }
 
 // Returns true when every player in the room has cast a vote for this matchup
 export function hasAllVoted(votes, allPlayerIds) {
-  // TODO: check that every ID in allPlayerIds appears as a key in votes
-  //   Hint: allPlayerIds.every(id => votes && votes[id] !== undefined)
+    return allPlayerIds.every(id => votes && votes[id] !== undefined);
 }
