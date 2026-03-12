@@ -24,22 +24,21 @@ export function useRoom(roomCode, subPath = '') {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    // TODO 1: return early if roomCode is empty or null
+    if (!roomCode) return;
 
-    // TODO 2: build the Firebase path string
-    //   if subPath is provided: 'rooms/{roomCode}/{subPath}'
-    //   if not:                 'rooms/{roomCode}'
-    //   Hint: use a ternary — subPath ? `rooms/...` : `rooms/...`
+    const path = subPath ? `rooms/${roomCode}/${subPath}` : `rooms/${roomCode}`;
 
-    // TODO 3: create a Firebase ref using ref(db, yourPath)
+    const dbRef = ref(db, path);
 
-    // TODO 4: call onValue(yourRef, (snapshot) => { ... })
-    //   inside the callback: check snapshot.exists()
-    //   if it exists: call setData(snapshot.val())
-    //   if not:       call setData(null)
+    const unsubscribe = onValue(dbRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setData(snapshot.val());
+      } else {
+        setData(null);
+      }
+    });
 
-    // TODO 5: return a cleanup function that calls unsubscribe()
-    //   this prevents memory leaks when the component unmounts
+    return () => { unsubscribe(); };
 
   }, [roomCode, subPath]);
 
