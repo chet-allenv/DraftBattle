@@ -5,6 +5,7 @@ import { useRoom }           from '../hooks/useRoom';
 import { getPickOwner, getTotalPicks } from '../utils/draftUtils';
 import { shufflePlayers }    from '../utils/roomUtils';
 import { buildBracket }      from '../utils/bracketUtils';
+import {useEffect}           from 'react'
 
 export default function SnakeDraft({ roomCode, playerId }) {
   const [pickInput, setPickInput] = useState('');
@@ -26,6 +27,13 @@ export default function SnakeDraft({ roomCode, playerId }) {
   //   write it: update(ref(db, `rooms/${roomCode}`), { draftOrder: shuffled, currentPickIndex: 0 })
   //   Wrap in a useEffect that runs when players changes
   //   Hint: import { useEffect } from 'react' at the top
+  useEffect(() => {
+    if (!draftOrder && room?.hostId === playerId && playerIds.length > 0) {
+      const shuffled = shufflePlayers(playerIds);
+      update(ref(db, `rooms/${roomCode}`), { draftOrder: shuffled, currentPickIndex: 0 });
+    }
+  }, [draftOrder, room?.hostId, playerId, playerIds, roomCode]);
+
 
   // ── Whose turn is it? ────────────────────────────────────────────
   const currentTurnId = draftOrder ? getPickOwner(pickIndex, draftOrder) : null;
@@ -35,9 +43,8 @@ export default function SnakeDraft({ roomCode, playerId }) {
   const handlePick = async () => {
     if (!isMyTurn || !pickInput.trim()) return;
 
-    // TODO 2: check for duplicate picks across all players
-    //   const allPicks = picks ? Object.values(picks).flat() : [];
-    //   if (allPicks.includes(pickInput.trim())) return alert('Already picked!');
+    const allPicks = picks ? Object.values(picks).flat() : [];
+    if (allPicks.includes(pickInput.trim())) return alert("Already picked!");
 
     const currentPicks = picks?.[playerId] || [];
     const newPicks     = [...currentPicks, pickInput.trim()];
@@ -45,20 +52,18 @@ export default function SnakeDraft({ roomCode, playerId }) {
     const isLastPick   = newIndex >= totalPicks;
 
     if (isLastPick) {
-      // TODO 3: draft is over — build bracket and advance phase
-      //   const bracket = buildBracket(playerIds);
-      //   await update(ref(db, `rooms/${roomCode}`), {
-      //     [`picks/${playerId}`]: newPicks,
-      //     currentPickIndex: newIndex,
-      //     bracket,
-      //     phase: 'bracket',
-      //   });
+      const bracket = buildBracket(playerIds);
+        await update(ref(db, `rooms${roomCode}`), {
+            [`picks/${playerId}`]: newPicks,
+            currentPickIndex: newIndex,
+            bracket,
+            phase: 'bracket',
+        });
     } else {
-      // TODO 4: normal pick — just update picks and advance index
-      //   await update(ref(db, `rooms/${roomCode}`), {
-      //     [`picks/${playerId}`]: newPicks,
-      //     currentPickIndex: newIndex,
-      //   });
+      await update(ref(db, `rooms/${roomCode}`), {
+        [`picks/${playerId}`]: newPicks,
+        currentPickIndex: newIndex,
+      });
     }
 
     setPickInput('');
