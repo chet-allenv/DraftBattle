@@ -10,11 +10,11 @@ Live at **[draft-battle.web.app](https://draft-battle.web.app)**
 
 Back in college, my friends and I had a go-to game that needed nothing more than a whiteboard and a group of people with strong opinions.
 
-Someone would shout out a category — *best action movie villains*, *worst foods to eat before a flight*, *things you'd bring to a deserted island* — and we'd take turns drafting our picks, snake-style, until everyone had a team. Then came the real fun: head-to-head debates in front of the whole room, with everyone voting on who made the better case. Losers got crossed off the bracket. One champion walked away with bragging rights.
+Someone would shout out a category, *best action movie villains*, *worst foods to eat before a flight*, *things you'd bring to a deserted island*, and we'd take turns drafting our picks, snake-style, until everyone had a team. Then came the real fun: head-to-head debates in front of the whole room, with everyone voting on who made the better case. Losers got crossed off the bracket. One champion walked away with bragging rights.
 
 It was loud, it was chaotic, and it was one of the best ways to kill an afternoon.
 
-Draft Battle is that whiteboard game, rebuilt as a proper video game. Same concept, same energy — now playable from anywhere, with real timers, a live bracket, and no dry-erase markers required.
+Draft Battle is that whiteboard game, rebuilt as a proper video game. Same concept, same energy, now playable from anywhere, with real timers, a live bracket, and no dry-erase markers required.
 
 ---
 
@@ -23,7 +23,7 @@ Draft Battle is that whiteboard game, rebuilt as a proper video game. Same conce
 1. **Lobby** — The host creates a room and shares the 6-character code. Players join on their phones. The host screen acts as the shared TV display (Jackbox-style).
 2. **Theme Vote** — Everyone submits a theme idea. Everyone votes. Most votes wins.
 3. **Snake Draft** — Players take turns picking items that fit the theme. Turn order reverses each round. Optional per-pick timer keeps things moving.
-4. **Battle Bracket** — Single-elimination tournament. Each matchup is played one at a time — both players present their case, then everyone votes. One champion is crowned.
+4. **Battle Bracket** — Single-elimination tournament. Each matchup is played one at a time, both players present their case, then everyone votes. One champion is crowned.
 
 ---
 
