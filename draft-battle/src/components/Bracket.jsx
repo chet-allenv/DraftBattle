@@ -24,19 +24,22 @@ export default function Bracket({ roomCode, playerId }) {
     const currentRound = rounds[currentRoundIndex];
     const matchups = Object.values(currentRound);
 
-    // TODO 1: check if every matchup in currentRound already has a winner
-    //   Hint: const allDone = matchups.every(m => m.winner !== null);
+    const allDone = matchups.every(m => m.winner !== null);
+    if (!allDone) return;
 
-    // TODO 2: if allDone and more than 1 matchup (not the final), build next round
-    //   const nextRound = buildNextRound(currentRound);
-    //   const nextIndex = currentRoundIndex + 1;
-    //   await update(ref(db, `rooms/${roomCode}/bracket/rounds`), { [nextIndex]: nextRound });
-
-    // TODO 3: if allDone and only 1 matchup (the final), set the champion
-    //   await update(ref(db, `rooms/${roomCode}`), {
-    //     'bracket/champion': matchups[0].winner,
-    //     phase: 'done'
-    //   });
+    async function advance() {
+      if (matchups.length > 1) {
+        const nextRound = buildNextRound(currentRound);
+        const nextIndex = currentRoundIndex + 1;
+        await update(ref(db, `rooms/${roomCode}/bracket/rounds`), { [nextIndex]: nextRound });
+      } else {
+        await update(ref(db, `rooms/${roomCode}`), {
+          'bracket/champion': matchups[0].winner,
+          phase: 'done'
+        });
+      }
+    }
+    advance();
 
   }, [bracket]);
 
@@ -48,22 +51,23 @@ export default function Bracket({ roomCode, playerId }) {
     const currentRoundIndex = Object.keys(rounds).length - 1;
     const currentRound = rounds[currentRoundIndex];
 
-    Object.entries(currentRound).forEach(async ([idx, matchup]) => {
-      if (matchup.winner) return;  // already resolved
-      if (!matchup.playerB) return; // bye — already handled in buildBracket
+    async function resolveMatchups() {
+      for (const [idx, matchup] of Object.entries(currentRound)) {
+        if (matchup.winner) continue;  // already resolved
+        if (!matchup.playerB) continue; // bye — already handled in buildBracket
 
-      // TODO 4: check if all players have voted on this matchup
-      //   if (hasAllVoted(matchup.votes, allPlayerIds)) {
-      //     const winner = getMatchupWinner(matchup.votes, matchup.playerA, matchup.playerB);
-      //     if (winner) {
-      //       await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { winner });
-      //     }
-      //     // if winner is null it's a tie — reset votes so people vote again
-      //     else {
-      //       await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { votes: {} });
-      //     }
-      //   }
-    });
+        if (hasAllVoted(matchup.votes, allPlayerIds)) {
+          const winner = getMatchupWinner(matchup.votes, matchup.playerA, matchup.playerB);
+          if (winner) {
+            await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { winner });
+          } else {
+            // tie — reset votes so people vote again
+            await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { votes: {} });
+          }
+        }
+      }
+    }
+    resolveMatchups();
   }, [bracket]);
 
   if (!bracket) return <div>Loading bracket...</div>;
