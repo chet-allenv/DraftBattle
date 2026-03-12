@@ -1,7 +1,10 @@
+// ThemeVote — the theme submission and voting phase.
+// Every player submits a theme idea, then votes for their favourite (can't vote for their own).
+// The host locks in the winning theme and advances to the draft phase.
 import { useState }               from 'react';
-import { ref, set, update }        from 'firebase/database';
-import { db }                      from '../firebase';
-import { useRoom }                 from '../hooks/useRoom';
+import { ref, set, update }       from 'firebase/database';
+import { db }                     from '../firebase';
+import { useRoom }                from '../hooks/useRoom';
 
 export default function ThemeVote({ roomCode, playerId }) {
   const [themeInput, setThemeInput] = useState('');
@@ -11,7 +14,7 @@ export default function ThemeVote({ roomCode, playerId }) {
   const votes   = useRoom(roomCode, 'votes');    // { uid: 'voted-for-uid' }
   const players = useRoom(roomCode, 'players');
 
-  const isHost      = room?.hostId === playerId;
+  const isHost       = room?.hostId === playerId;
   const hasSubmitted = themes && themes[playerId];
   const hasVoted     = votes  && votes[playerId];
 
@@ -27,23 +30,24 @@ export default function ThemeVote({ roomCode, playerId }) {
   };
 
   // ── Advance to draft (host only) ─────────────────────────────────
+  // Tallies votes, picks the theme with the most votes, saves it, and advances phase
   const handleAdvance = async () => {
     const tally = {};
     Object.values(votes).forEach(v => { tally[v] = (tally[v] || 0) + 1; });
-    const winnerId = Object.entries(tally).sort((a,b) => b[1]-a[1])[0][0];
+    const winnerId     = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
     const winningTheme = themes[winnerId];
 
-    await update(ref(db, `rooms/${roomCode}`), { winningTheme, phase: 'draft'});
+    await update(ref(db, `rooms/${roomCode}`), { winningTheme, phase: 'draft' });
   };
 
-  const themeList = themes  ? Object.entries(themes)  : [];
-  const voteList  = votes   ? Object.values(votes)    : [];
+  const themeList = themes ? Object.entries(themes) : [];
+  const voteList  = votes  ? Object.values(votes)   : [];
 
   return (
     <div>
       <h2>Vote on a Theme</h2>
 
-      {/* Theme submission */}
+      {/* Theme submission — hidden once the player has submitted */}
       {!hasSubmitted && (
         <div>
           <input placeholder='Your theme idea' value={themeInput}
@@ -52,11 +56,12 @@ export default function ThemeVote({ roomCode, playerId }) {
         </div>
       )}
 
-      {/* List all submitted themes with vote buttons */}
+      {/* List all submitted themes with vote counts and vote buttons */}
       <h3>Submitted Themes:</h3>
       {themeList.map(([uid, theme]) => (
         <div key={uid}>
           <span>{theme}</span>
+          {/* Can't vote for your own theme or vote twice */}
           {!hasVoted && uid !== playerId && (
             <button onClick={() => handleVote(uid)}>Vote</button>
           )}
@@ -64,7 +69,7 @@ export default function ThemeVote({ roomCode, playerId }) {
         </div>
       ))}
 
-      {/* Host advances when ready */}
+      {/* Host locks in the theme when ready */}
       {isHost && <button onClick={handleAdvance}>Lock In Theme & Start Draft</button>}
     </div>
   );

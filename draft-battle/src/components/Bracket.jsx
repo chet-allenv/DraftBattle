@@ -27,20 +27,21 @@ export default function Bracket({ roomCode, playerId }) {
     const allDone = matchups.every(m => m.winner !== null);
     if (!allDone) return;
 
-    async function advance() {
+    const advance = async () => {
       if (matchups.length > 1) {
+        // Not the final — build and push the next round
         const nextRound = buildNextRound(currentRound);
         const nextIndex = currentRoundIndex + 1;
         await update(ref(db, `rooms/${roomCode}/bracket/rounds`), { [nextIndex]: nextRound });
       } else {
+        // Final matchup finished — set champion and phase
         await update(ref(db, `rooms/${roomCode}`), {
           'bracket/champion': matchups[0].winner,
-          phase: 'done'
+          phase: 'done',
         });
       }
-    }
+    };
     advance();
-
   }, [bracket]);
 
   // ── Watch votes and resolve matchups ─────────────────────────────
@@ -51,23 +52,20 @@ export default function Bracket({ roomCode, playerId }) {
     const currentRoundIndex = Object.keys(rounds).length - 1;
     const currentRound = rounds[currentRoundIndex];
 
-    async function resolveMatchups() {
-      for (const [idx, matchup] of Object.entries(currentRound)) {
-        if (matchup.winner) continue;  // already resolved
-        if (!matchup.playerB) continue; // bye — already handled in buildBracket
+    Object.entries(currentRound).forEach(async ([idx, matchup]) => {
+      if (matchup.winner) return;  // already resolved
+      if (!matchup.playerB) return; // bye — already handled in buildBracket
 
-        if (hasAllVoted(matchup.votes, allPlayerIds)) {
-          const winner = getMatchupWinner(matchup.votes, matchup.playerA, matchup.playerB);
-          if (winner) {
-            await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { winner });
-          } else {
-            // tie — reset votes so people vote again
-            await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { votes: {} });
-          }
+      if (hasAllVoted(matchup.votes, allPlayerIds)) {
+        const winner = getMatchupWinner(matchup.votes, matchup.playerA, matchup.playerB);
+        if (winner) {
+          await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { winner });
+        } else {
+          // Tie — reset votes so players vote again
+          await update(ref(db, `rooms/${roomCode}/bracket/rounds/${currentRoundIndex}/${idx}`), { votes: {} });
         }
       }
-    }
-    resolveMatchups();
+    });
   }, [bracket]);
 
   if (!bracket) return <div>Loading bracket...</div>;
