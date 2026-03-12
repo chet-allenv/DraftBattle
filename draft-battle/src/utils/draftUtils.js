@@ -21,17 +21,16 @@ Key members:
 //   Player: A  B  C  C  B  A  A  B  C
 
 export function getPickOwner(pickIndex, draftOrder) {
-  const n = draftOrder.length;
+    const n = draftOrder.length;
 
-  // TODO 1: calculate which round we are in
-  //   Hint: const round = Math.floor(pickIndex / n);
+    const round = Math.floor(pickIndex / n);
 
-  // TODO 2: calculate position within the current round
-  //   Hint: const position = pickIndex % n;
 
-  // TODO 3: if round is odd (reversed), count from the end
-  //   Hint: if (round % 2 === 1) return draftOrder[n - 1 - position];
-  //         else                 return draftOrder[position];
+    const position = pickIndex % n;
+
+    if (round % 2 === 1) return draftOrder[n - 1 - position];
+    else                 return draftOrder[position];
+
 }
 
 // Returns total picks needed to end the draft
