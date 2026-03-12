@@ -22,15 +22,12 @@ export function tallyVotes(votes, playerAId, playerBId) {
            playerBVotes: vals.filter(v => v === playerBId).length };
 }
 
-// Returns the winner ID if one player has strictly more votes, otherwise null (tie)
+// Returns the winner ID if one player has strictly more votes, or null on a tie (triggers re-vote)
 export function getMatchupWinner(votes, playerAId, playerBId) {
   const { playerAVotes, playerBVotes } = tallyVotes(votes, playerAId, playerBId);
-    if (playerAVotes > playerBVotes) return playerAId;
-    else if (playerBVotes > playerAVotes) return playerBId;
-    else {
-        // tie-breaker: player with lower ID wins (arbitrary but deterministic)
-        return playerAId < playerBId ? playerAId : playerBId;
-    }; // tie 
+  if (playerAVotes > playerBVotes) return playerAId;
+  if (playerBVotes > playerAVotes) return playerBId;
+  return null; // tie — caller should clear votes and re-vote
 }
 
 // Returns true when every player in the room has cast a vote for this matchup

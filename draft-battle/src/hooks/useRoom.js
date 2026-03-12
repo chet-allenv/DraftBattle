@@ -21,9 +21,10 @@ import { ref, onValue }        from 'firebase/database';
 import { db }                  from '../firebase';
 
 export function useRoom(roomCode, subPath = '') {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(undefined); // undefined = loading, null = doesn't exist
 
   useEffect(() => {
+    setData(undefined); // reset to loading state whenever roomCode/subPath changes
     if (!roomCode) return;
 
     const path = subPath ? `rooms/${roomCode}/${subPath}` : `rooms/${roomCode}`;

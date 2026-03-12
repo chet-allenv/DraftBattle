@@ -13,9 +13,13 @@ Key members:
 */
 
 // Generate a random 6-character uppercase room code
+// Excludes O, 0, I, 1 to avoid visual confusion
 // Example output: 'XK92BT'
 export function generateRoomCode() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }
 
 // Shuffle an array of player IDs into a random order

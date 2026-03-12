@@ -1,13 +1,516 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:            #0a1628;
+  --panel:         #13294b;
+  --border:        #1e3d6b;
+  --carolina:      #4b9cd3;
+  --carolina-dark: #2e7ab0;
+  --carolina-dim:  #1e4f73;
+  --navy:          #13294b;
+  --white:         #ffffff;
+  --off-white:     #d6e8f5;
+  --text:          #ffffff;
+  --text-dim:      #7faabf;
+  --success:       #4ece7b;
+  --success-dark:  #268a48;
+  --warning:       #f0b429;
+  --warning-dark:  #a07000;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
 }
+
+h1, h2, h3, h4 {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 2px;
+  margin: 0 0 12px 0;
+}
+
+/* ── Layout ──────────────────────────────────── */
+
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 16px;
+}
+
+.screen--top {
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── Player header bar ───────────────────────── */
+
+.player-header {
+  background: var(--panel);
+  border-bottom: 2px solid var(--carolina);
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  color: var(--carolina);
+  text-transform: uppercase;
+}
+
+/* ── Game title ──────────────────────────────── */
+
+.game-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 6rem;
+  color: var(--white);
+  letter-spacing: 6px;
+  margin: 0;
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(75, 156, 211, 0.4);
+}
+
+.game-title span {
+  color: var(--carolina);
+}
+
+/* ── Cards ───────────────────────────────────── */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.card--active {
+  border-color: var(--carolina);
+  box-shadow: 0 0 16px rgba(75, 156, 211, 0.25);
+}
+
+.card--winner {
+  border-color: var(--warning);
+  box-shadow: 0 0 16px rgba(240, 180, 41, 0.3);
+}
+
+/* ── Buttons ─────────────────────────────────── */
+
+.btn {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 26px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
+  white-space: nowrap;
+}
+
+.btn:active { transform: translateY(1px); box-shadow: none !important; }
+
+.btn--primary {
+  background: var(--carolina);
+  color: var(--white);
+  box-shadow: 0 4px 0 var(--carolina-dark);
+}
+.btn--primary:hover { background: #5aaade; box-shadow: 0 6px 0 var(--carolina-dark); transform: translateY(-1px); }
+
+.btn--secondary {
+  background: var(--panel);
+  color: var(--carolina);
+  border: 1.5px solid var(--carolina);
+  box-shadow: none;
+}
+.btn--secondary:hover { background: var(--carolina-dim); }
+
+.btn--success {
+  background: var(--success);
+  color: #0a1628;
+  box-shadow: 0 4px 0 var(--success-dark);
+}
+.btn--success:hover { box-shadow: 0 6px 0 var(--success-dark); transform: translateY(-1px); }
+
+.btn--vote {
+  background: var(--carolina);
+  color: var(--white);
+  box-shadow: 0 3px 0 var(--carolina-dark);
+  padding: 8px 18px;
+  font-size: 0.85rem;
+}
+.btn--vote:hover { background: #5aaade; box-shadow: 0 5px 0 var(--carolina-dark); transform: translateY(-1px); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1.5px solid var(--border);
+  box-shadow: none;
+}
+
+/* ── Inputs ──────────────────────────────────── */
+
+.input {
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 11px 16px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.input:focus {
+  border-color: var(--carolina);
+  box-shadow: 0 0 0 3px rgba(75, 156, 211, 0.15);
+}
+
+.input::placeholder { color: var(--text-dim); }
+
+/* ── Room code display ───────────────────────── */
+
+.room-code {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem;
+  color: var(--carolina);
+  letter-spacing: 10px;
+  background: rgba(75, 156, 211, 0.08);
+  border: 1.5px solid var(--carolina);
+  border-radius: 12px;
+  padding: 10px 32px;
+}
+
+/* ── Player list ─────────────────────────────── */
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.player-list__item {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 18px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* ── Theme vote ──────────────────────────────── */
+
+.theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 18px;
+  transition: border-color 0.2s;
+}
+
+.theme-row:hover { border-color: var(--carolina); }
+
+.theme-row__text {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.theme-row__votes {
+  color: var(--carolina);
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 64px;
+  text-align: right;
+}
+
+/* ── Draft board ─────────────────────────────── */
+
+.draft-board {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.draft-column {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 150px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.draft-column--active {
+  border-color: var(--carolina);
+  box-shadow: 0 0 20px rgba(75, 156, 211, 0.2);
+}
+
+.draft-column__header {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  color: var(--carolina);
+}
+
+.draft-pick {
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--off-white);
+}
+
+.draft-pick--skipped {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* ── Bracket ─────────────────────────────────── */
+
+.bracket-board {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.round-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+/* ── Matchup card ────────────────────────────── */
+
+.matchup {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.matchup--done { border-color: var(--success); }
+
+.matchup__player {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.matchup__player-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.matchup__vote-count {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+.matchup__winner-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  color: var(--success);
+  letter-spacing: 1px;
+}
+
+.matchup__bye {
+  color: var(--text-dim);
+  font-style: italic;
+  font-size: 0.88rem;
+}
+
+/* ── Results ─────────────────────────────────── */
+
+.champion-banner {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;
+  color: var(--carolina);
+  letter-spacing: 4px;
+  text-align: center;
+  margin: 0;
+  text-shadow: 0 0 40px rgba(75, 156, 211, 0.5);
+}
+
+.results-board {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* ── Mobile ──────────────────────────────────── */
+
+@media (max-width: 600px) {
+
+  /* Lock the page — no browser scroll */
+  html, body { height: 100%; overflow: hidden; }
+  #root       { height: 100%; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* Centered screens (lobby, vote, results, player bracket) — fill height, scroll internally */
+  .screen {
+    flex: 1;
+    min-height: 0;
+    height: unset;
+    min-height: unset;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding: 16px 16px 32px;
+    gap: 12px;
+    box-sizing: border-box;
+  }
+
+  /* Ensure nothing bleeds outside viewport horizontally */
+  .screen * { max-width: 100%; box-sizing: border-box; }
+
+  /* Top-aligned screens (draft, bracket) — fixed column, boards scroll inside */
+  .screen--top {
+    flex: 1;
+    min-height: 0;
+    height: unset;
+    overflow: hidden;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  /* Title */
+  .game-title   { font-size: 3.8rem; letter-spacing: 3px; }
+
+  /* Room code */
+  .room-code    { font-size: 2.4rem; letter-spacing: 6px; padding: 8px 20px; }
+
+  /* Champion banner */
+  .champion-banner { font-size: 2.6rem; letter-spacing: 2px; }
+
+  /* Prevent iOS zoom on input focus */
+  .input        { font-size: 16px; }
+
+  /* Buttons — large tap targets */
+  .btn          { padding: 13px 20px; font-size: 0.9rem; min-height: 44px; }
+  .btn--vote    { padding: 10px 16px; min-height: 40px; }
+
+  /* Player list — bounded height, scrolls internally */
+  .player-list  { max-width: 100%; max-height: 22vh; overflow-y: auto; }
+
+  /* Theme list — takes remaining flex space, scrolls internally */
+  .theme-list   { max-width: 100%; flex: 1; min-height: 0; overflow-y: auto; }
+  .theme-row    { flex-wrap: wrap; gap: 8px; padding: 14px 16px; }
+  .theme-row__text { font-size: 1.05rem; }
+  .theme-row__votes { min-width: unset; }
+
+  /* Draft board — CSS grid (2-col), scrolls vertically. Grid avoids Safari flex-calc bugs. */
+  .draft-board  {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: min-content;
+    align-content: start;
+    overflow-y: auto;
+    overflow-x: hidden;
+    gap: 10px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .draft-column       { width: 100%; min-width: 0; padding: 10px; }
+  .draft-column__header { font-size: 1.05rem; margin-bottom: 6px; }
+  .draft-pick         { font-size: 0.85rem; padding: 5px 8px; }
+
+  /* Bracket board — takes remaining space, scrolls both axes */
+  .bracket-board {
+    flex: 1;
+    min-height: 0;
+    flex-wrap: nowrap;
+    overflow: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+  }
+
+  /* Matchup cards — generous padding for touch, never clip content */
+  .matchup      { min-width: 0; width: 100%; max-width: 380px; padding: 14px 16px; gap: 12px; align-self: center; }
+  .matchup__player-name { font-size: 1.1rem; }
+
+  /* Settings card in lobby */
+  .card         { padding: 16px; }
+
+  /* Results board — 2-col grid so cards are a comfortable width */
+  .results-board {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: min-content;
+    gap: 10px;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  /* Header bar */
+  .player-header { padding: 14px 18px; font-size: 1rem; }
+}
+
+/* ── Toast animation ─────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Utility ─────────────────────────────────── */
+
+.text-dim    { color: var(--text-dim); }
+.text-accent { color: var(--carolina); }
+.text-center { text-align: center; }
+.row         { display: flex; gap: 12px; align-items: center; }
+.col         { display: flex; flex-direction: column; gap: 12px; }
+.divider     { border: none; border-top: 1px solid var(--border); margin: 4px 0; }

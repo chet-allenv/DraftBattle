@@ -12,26 +12,66 @@ if (phase === 'lobby') render <Lobby /> etc
 
 
 */
-import { useState } from 'react';
-import { useRoom }  from './hooks/useRoom';
-import Lobby        from './components/Lobby';
-import ThemeVote    from './components/ThemeVote';
-import SnakeDraft   from './components/SnakeDraft';
-import Bracket      from './components/Bracket';
+import { useState, useEffect } from 'react';
+import { ref, remove }         from 'firebase/database';
+import { db }                  from './firebase';
+import { useRoom }             from './hooks/useRoom';
+import Lobby                   from './components/Lobby';
+import ThemeVote               from './components/ThemeVote';
+import SnakeDraft              from './components/SnakeDraft';
+import Bracket                 from './components/Bracket';
+import Results                 from './components/Results';
 
 export default function App() {
-  // These two values identify the current player and room
-  // They are set in Lobby and passed down to all child components
   const [roomCode, setRoomCode] = useState('');
   const [playerId, setPlayerId] = useState('');
 
-  // Subscribe to the phase — updates automatically when Firebase changes
-  const phase = useRoom(roomCode, 'phase');
+  const phase   = useRoom(roomCode, 'phase');
+  const room    = useRoom(roomCode);
+  const players = useRoom(roomCode, 'players');
+
+  const playerName = players?.[playerId]?.name;
+  const isHost     = room?.hostId === playerId;
+
+  // ── Auto-kick when host closes the room ──────────────────────────
+  // phase === null means the room was deleted (useRoom returns null for missing data)
+  useEffect(() => {
+    if (roomCode && phase === null) {
+      setRoomCode('');
+      setPlayerId('');
+    }
+  }, [roomCode, phase]);
+
+  // ── Close / Leave game ───────────────────────────────────────────
+  const handleClose = async () => {
+    await remove(ref(db, `rooms/${roomCode}`));
+    // auto-kick effect above will reset state for the host too
+  };
+
+  const handleLeave = async () => {
+    await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
+    setRoomCode('');
+    setPlayerId('');
+  };
 
   if (!roomCode) return <Lobby setRoomCode={setRoomCode} setPlayerId={setPlayerId} />
-  if (phase === 'vote') return <ThemeVote roomCode={roomCode} playerId={playerId} />
-  if (phase === 'draft') return <SnakeDraft roomCode={roomCode} playerId={playerId} />
-  if (phase === 'bracket') return <Bracket roomCode={roomCode} playerId={playerId} />
-  if (phase === 'done') return <div><h1>Game Over!</h1></div>
-  return <Lobby setRoomCode={setRoomCode} setPlayerId={setPlayerId} />
+
+  // Still loading — don't flash the wrong screen
+  if (phase === undefined) return null;
+
+  const header = (
+    <div className="player-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span>{playerName ? `Playing as: ${playerName}` : ''}</span>
+      {isHost
+        ? <button className="btn btn--ghost" style={{ padding: '4px 14px', fontSize: '0.8rem' }} onClick={handleClose}>Close Game</button>
+        : <button className="btn btn--ghost" style={{ padding: '4px 14px', fontSize: '0.8rem' }} onClick={handleLeave}>Leave Game</button>
+      }
+    </div>
+  );
+
+  if (phase === 'lobby')   return <Lobby setRoomCode={setRoomCode} setPlayerId={setPlayerId} initialRoomCode={roomCode} initialPlayerId={playerId} />
+  if (phase === 'vote')    return <>{header}<ThemeVote roomCode={roomCode} playerId={playerId} /></>
+  if (phase === 'draft')   return <>{header}<SnakeDraft roomCode={roomCode} playerId={playerId} /></>
+  if (phase === 'bracket') return <>{header}<Bracket roomCode={roomCode} playerId={playerId} /></>
+  if (phase === 'done')    return <>{header}<Results roomCode={roomCode} playerId={playerId} /></>
 }

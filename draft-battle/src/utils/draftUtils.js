@@ -20,17 +20,17 @@ Key members:
 //   Index: 0  1  2  3  4  5  6  7  8
 //   Player: A  B  C  C  B  A  A  B  C
 
-export function getPickOwner(pickIndex, draftOrder) {
-    const n = draftOrder.length;
-
-    const round = Math.floor(pickIndex / n);
-
-
+// draftType: 'snake' (default) or 'linear'
+export function getPickOwner(pickIndex, draftOrder, draftType = 'snake') {
+    const n        = draftOrder.length;
     const position = pickIndex % n;
 
+    if (draftType === 'linear') return draftOrder[position];
+
+    // snake: odd rounds go in reverse
+    const round = Math.floor(pickIndex / n);
     if (round % 2 === 1) return draftOrder[n - 1 - position];
     else                 return draftOrder[position];
-
 }
 
 // Returns total picks needed to end the draft

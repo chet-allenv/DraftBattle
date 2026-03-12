@@ -1,64 +1,11 @@
 /*
-
-Purpose: Pure functions for bracket generation and progression. Builds a bracket from player list and advances winners. No React, no Firebase, no side effects. Just input -> output.
-
+Purpose: Pure functions for bracket generation and progression.
 Responsibilities:
-- Accepts an array of playerIds and returns a bracket object, matching the structure in Firebase.
-- Pads to next power of 2 with byes if necessary (e.g. 6 players -> 8 player bracket with 2 byes, 9 players -> 16 player bracket with 7 byes)
-- Given completed matchups in a round, generates the next round's matchups until a winner is determined
-- Determines if there is a champion (only 1 player left) and returns their playerId
-
-Key members:
-- buildBracket(playerIds): -> bracket object with rounds and matchups
-- getNextRound(completedRound): -> next round object with matchups
-- getRoundCount(playerCount): -> number of rounds needed for given player count
-    // (Math.ceil(Math.log2(playerCount)))
-- hasBye(matchup): -> boolean
-
+- buildBracket: distributes byes so no two nulls are paired (no null-null matchups), byes randomly assigned
+- buildNextRound: sorts bye-winners first so they get paired, preventing back-to-back byes
 */
 
-// Pad playerIds up to the next power of 2 with null (byes)
-// Example: 3 players → [uid1, uid2, uid3, null]
-function padToPowerOfTwo(playerIds) {
-  let size = 1;
-
-  while (size < playerIds.length) size *= 2;
-
-  return [...playerIds, ...Array(size - playerIds.length).fill(null)];
-}
-
-// Build the initial bracket object from a list of player IDs
-// Returns an object shaped for Firebase: { rounds: { 0: { 0: {playerA, playerB, votes:{}, winner:null} } } }
-export function buildBracket(playerIds) {
-  const seeded = padToPowerOfTwo(shuffled(playerIds));
-  const matchups = {};
-  for (let i = 0; i < seeded.length; i += 2) {
-    matchups[i / 2] = {
-      playerA: seeded[i],
-      playerB: seeded[i + 1],  // null = bye
-      votes:   {},
-      winner:  seeded[i + 1] === null ? seeded[i] : null, // auto-advance byes
-    };
-  }
-  return { rounds: { 0: matchups }, champion: null };
-}
-
-// Given a completed round's matchups, build the next round
-export function buildNextRound(completedMatchups) {
-    const winners = Object.values(completedMatchups).map(m => m.winner);
-    const nextRound = {};
-    for (let i = 0; i < winners.length; i += 2) {
-        nextRound[i / 2] = {
-            playerA: winners[i],
-            playerB: winners[i + 1] || null, // handle odd number of winners
-            votes: {},
-            winner: winners[i + 1] ? null : winners[i], // auto-advance if bye
-        };
-    }
-    return nextRound;
-}
-
-// Helper — shuffle without importing roomUtils
+// Shuffle helper
 function shuffled(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -66,4 +13,67 @@ function shuffled(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+// Build initial bracket — only 1 bye when player count is odd.
+// Never pads to the next power of 2, so 5 players = 2 real matchups + 1 bye,
+// not 1 real matchup + 3 byes.
+// The bye is placed first so that player faces a real opponent in round 2.
+export function buildBracket(playerIds) {
+  const players = shuffled(playerIds);
+  const matchups = {};
+  let matchupIdx = 0;
+  let playerIdx  = 0;
+
+  // If odd count, exactly one player gets a bye (placed first)
+  if (players.length % 2 !== 0) {
+    const p = players[playerIdx++];
+    matchups[matchupIdx++] = { playerA: p, playerB: null, votes: {}, winner: p };
+  }
+
+  // All remaining players paired into real matchups
+  while (playerIdx < players.length) {
+    matchups[matchupIdx++] = {
+      playerA: players[playerIdx++],
+      playerB: players[playerIdx++],
+      votes:   {},
+      winner:  null,
+    };
+  }
+
+  return { rounds: { 0: matchups }, champion: null, roundStartedAt: Date.now() };
+}
+
+// Returns ordered list of player IDs who need to present this round (excludes byes/resolved)
+export function buildPresenterQueue(matchups) {
+  const queue = [];
+  Object.values(matchups).forEach(m => {
+    if (!m.playerB || m.winner) return;
+    queue.push(m.playerA, m.playerB);
+  });
+  return queue;
+}
+
+// Build next round — bye-winners sorted first so they get paired, preventing back-to-back byes
+export function buildNextRound(completedMatchups) {
+  const matchupsArr = Object.values(completedMatchups);
+
+  const byeWinners = new Set(
+    matchupsArr.filter(m => m.playerB === null).map(m => m.winner)
+  );
+
+  const winners = matchupsArr.map(m => m.winner);
+
+  // If odd count, sort bye-winners first → they pair up, non-bye player gets the new bye
+  if (winners.length % 2 !== 0) {
+    winners.sort((a, b) => (byeWinners.has(a) ? 0 : 1) - (byeWinners.has(b) ? 0 : 1));
+  }
+
+  const nextRound = {};
+  for (let i = 0; i < winners.length; i += 2) {
+    const pA = winners[i];
+    const pB = winners[i + 1] || null;
+    nextRound[i / 2] = { playerA: pA, playerB: pB, votes: {}, winner: pB ? null : pA };
+  }
+  return nextRound;
 }
